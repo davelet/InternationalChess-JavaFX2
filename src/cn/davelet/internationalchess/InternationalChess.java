@@ -33,7 +33,8 @@ public class InternationalChess extends Application {
     GridPane grid = new GridPane();
     VBox upTo = new VBox();//升变对象区域
     Text name = new Text("名称区域");
-    ImageView[] piece = new ImageView[32];//棋子数组
+    ImageView[] piece = new ImageView[32];//棋子数组,在68行初始化
+    Rectangle[][] bgRect = new Rectangle[8][8];//棋盘矩形，在220行初始化
     //被选中图片的坐标
     int selectedRow;
     int selectedColumn;
@@ -146,7 +147,7 @@ public class InternationalChess extends Application {
         namebox.setAlignment(Pos.CENTER);
         namebox.getChildren().add(name);
         name.setFont(new Font(28));
-//        name.setStyle("-fx-text-fill: #006464;");设置字体颜色
+        name.setStyle("-fx-text-fill: #006464;");//设置字体颜色
         Text white = new Text("白方步数：");
         white.setFont(new Font(20));
         Text black = new Text("黑方步数：");
@@ -216,16 +217,23 @@ public class InternationalChess extends Application {
             }
         });
 
-//        使用GridPane作为棋盘，该窗格可以进行栈覆盖
-        grid.setPadding(new Insets(0, 0, 0, 10));
-//        the 3rd para of the rect sets the rectangle's color
+        //初始化bgRect数组
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
                 if ((column + row) % 2 == 0) {
-                    grid.add(new Rectangle(80, 80, Color.YELLOW), column, row);
+                bgRect[column][row]=new Rectangle(80, 80, Color.YELLOW);
                 } else {
-                    grid.add(new Rectangle(80, 80, Color.GREEN), column, row);
+                bgRect[column][row]=new Rectangle(80, 80, Color.GREEN);
                 }
+            }
+        }
+
+//        使用GridPane作为棋盘，该窗格可以进行栈覆盖
+        grid.setPadding(new Insets(0, 0, 0, 10));
+        //        the 3rd para of the rect sets the rectangle's color
+        for (int column = 0; column < 8; column++) {
+            for (int row = 0; row < 8; row++) {
+                    grid.add(bgRect[column][row], column, row);
             }
         }
         pane.setCenter(grid);//边框布局中心是棋盘
