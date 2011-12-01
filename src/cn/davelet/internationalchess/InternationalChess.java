@@ -35,9 +35,10 @@ public class InternationalChess extends Application {
     Text name = new Text("名称区域");
     ImageView[] piece = new ImageView[32];//棋子数组,在68行初始化
     Rectangle[][] bgRect = new Rectangle[8][8];//棋盘矩形，在220行初始化
-    //被选中图片的坐标
-    int selectedRow;
-    int selectedColumn;
+    //被选中图片的坐标(数组位置)
+    int selected = 32;
+//    int selectedRow = 8;
+//    int selectedColumn = 8;
 
     /**
      * 待解决问题：
@@ -200,30 +201,14 @@ public class InternationalChess extends Application {
         upTo.getChildren().addAll(new Separator(), new Separator(), new Text("兵升变对象："), rb1, rb2, rb3, rb4);
         upTo.setStyle("-fx-font: 20 arial;");
         vbox.getChildren().addAll(namebox, white, sp1, black, sp2, skill, upTo);
-        //给特殊按钮增加事件
-        kingGharry.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件
-
-            public void handle(ActionEvent t) {
-            }
-        });
-        solderUp.setOnAction(new EventHandler<ActionEvent>() {//兵升变事件
-
-            public void handle(ActionEvent t) {
-            }
-        });
-        hitPassSolder.setOnAction(new EventHandler<ActionEvent>() {//吃过路兵事件
-
-            public void handle(ActionEvent t) {
-            }
-        });
 
         //初始化bgRect数组
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
                 if ((column + row) % 2 == 0) {
-                bgRect[column][row]=new Rectangle(80, 80, Color.YELLOW);
+                    bgRect[column][row] = new Rectangle(80, 80, Color.YELLOW);
                 } else {
-                bgRect[column][row]=new Rectangle(80, 80, Color.GREEN);
+                    bgRect[column][row] = new Rectangle(80, 80, Color.GREEN);
                 }
             }
         }
@@ -233,7 +218,7 @@ public class InternationalChess extends Application {
         //        the 3rd para of the rect sets the rectangle's color
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
-                    grid.add(bgRect[column][row], column, row);
+                grid.add(bgRect[column][row], column, row);
             }
         }
         pane.setCenter(grid);//边框布局中心是棋盘
@@ -243,8 +228,11 @@ public class InternationalChess extends Application {
         primaryStage.show();
 
 
-        /*
-         * 以下是所有图片和棋盘的处理事件
+        /**
+         * ********************************************************************************************************************
+         * 以下是所有图片和棋盘的处理事件 111首先是对图片的放大和恢复 222然后是所有棋子的单击事件 333接着是棋盘面板的单击事件
+         * 444特殊按钮的单击事件
+         * *********************************************************************************************************************
          */
 
         /*
@@ -272,50 +260,239 @@ public class InternationalChess extends Application {
          *
          */
         //为黑方步兵处理
-        for (int i = 8; i < 16; i++) {
-            piece[i].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        piece[8].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
-                public void handle(MouseEvent t) {
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    ImageView source = (ImageView) t.getSource();
-                    int c = GridPane.getColumnIndex(source);
-                    int r = GridPane.getRowIndex(source);
-                    selectedColumn = c;
-                    selectedRow = r;
-                    if (r == 1) {//如果兵没动过，可以走两步
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 8;
+                if (r == 1) {//如果兵没动过，可以走两步
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
+                }
+            }
+        });
+        piece[9].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 9;
+                if (r == 1) {//如果兵没动过，可以走两步
 //                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
-                    }
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
                 }
-            });
-        }
-        //为白方步兵处理
-        for (int i = 16; i < 24; i++) {
-            piece[i].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            }
+        });
+        piece[10].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
-                public void handle(MouseEvent t) {
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    ImageView source = (ImageView) t.getSource();
-//                    int c = GridPane.getColumnIndex(source);
-                    int r = GridPane.getRowIndex(source);
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
-                    }
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 10;
+                if (r == 1) {//如果兵没动过，可以走两步
+//                        GridPane.clearConstraints((ImageView)t.getSource());
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
                 }
-            });
-        }
+            }
+        });
+        piece[11].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 10;
+                if (r == 1) {//如果兵没动过，可以走两步
+//                        GridPane.clearConstraints((ImageView)t.getSource());
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
+                }
+            }
+        });
+        piece[12].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 10;
+                if (r == 1) {//如果兵没动过，可以走两步
+//                        GridPane.clearConstraints((ImageView)t.getSource());
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
+                }
+            }
+        });
+        piece[13].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 10;
+                if (r == 1) {//如果兵没动过，可以走两步
+//                        GridPane.clearConstraints((ImageView)t.getSource());
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
+                }
+            }
+        });
+        piece[14].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                selected = 10;
+                if (r == 1) {//如果兵没动过，可以走两步
+//                        GridPane.clearConstraints((ImageView)t.getSource());
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
+                }
+            }
+        });
+        piece[15].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                name.setText("黑方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                selected = 10;
+                if (r == 1) {//如果兵没动过，可以走两步
+//                        GridPane.clearConstraints((ImageView)t.getSource());
+                } else if (r < 7) {//否则只能走一步
+                } else if (r == 7) {//兵升变
+                }
+            }
+        });
+        //为白方步兵处理
+        piece[16].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 16;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[17].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 17;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[18].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 18;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[19].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 19;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[20].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 20;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[21].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 21;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[22].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 22;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
+        piece[23].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                selected = 23;
+                name.setText("白方:兵Pawn");//在解释区显示
+                ImageView source = (ImageView) t.getSource();
+                int r = GridPane.getRowIndex(source);
+                if (r == 6) {//如果兵没动过，可以走两步
+                } else if (r > 0) {//否则只能走一步
+                } else if (r == 0) {//兵升变
+                }
+            }
+        });
         //黑方车的处理
         piece[0].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
             public void handle(MouseEvent t) {
                 name.setText("黑方:车Rook");//在解释区显示
                 ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 0;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         piece[7].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -323,10 +500,10 @@ public class InternationalChess extends Application {
             public void handle(MouseEvent t) {
                 name.setText("黑方:车Rook");//在解释区显示
                 ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 7;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //白方车的处理
@@ -335,10 +512,10 @@ public class InternationalChess extends Application {
             public void handle(MouseEvent t) {
                 name.setText("白方:车Rook");//在解释区显示
                 ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 24;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         piece[31].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -348,8 +525,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 31;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //黑方马
@@ -360,8 +538,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 1;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         piece[6].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -371,8 +550,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 6;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //白方马
@@ -383,8 +563,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 25;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         piece[30].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -394,8 +575,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 30;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //黑方象
@@ -406,8 +588,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 2;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         piece[5].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -417,8 +600,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 5;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //白方象
@@ -429,8 +613,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 26;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         piece[29].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -440,8 +625,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 29;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //黑方后
@@ -452,8 +638,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 3;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //白方后
@@ -464,8 +651,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 27;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //黑方王
@@ -476,8 +664,9 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 4;
+//                selectedColumn = c;
+//                selectedRow = r;
             }
         });
         //白方王
@@ -488,8 +677,45 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                selectedColumn = c;
-                selectedRow = r;
+                selected = 28;
+//                selectedColumn = c;
+//                selectedRow = r;
+            }
+        });
+        /*
+         * 棋盘面板的单击事件
+         */
+        for (int column = 0; column < 8; column++) {
+            for (int row = 0; row < 8; row++) {
+                bgRect[column][row].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+                    public void handle(MouseEvent t) {
+                        if (selected < 32//Column < 8 || selectedRow < 8
+                                ) {
+                            Rectangle s = (Rectangle) t.getSource();
+                            int c = GridPane.getColumnIndex(s);
+                            int r = GridPane.getRowIndex(s);
+                            GridPane.clearConstraints(piece[selected]);
+                            grid.add(piece[selected], c, r);
+                        }
+                    }
+                });
+            }
+        }
+        //给特殊按钮增加事件
+        kingGharry.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件
+
+            public void handle(ActionEvent t) {
+            }
+        });
+        solderUp.setOnAction(new EventHandler<ActionEvent>() {//兵升变事件
+
+            public void handle(ActionEvent t) {
+            }
+        });
+        hitPassSolder.setOnAction(new EventHandler<ActionEvent>() {//吃过路兵事件
+
+            public void handle(ActionEvent t) {
             }
         });
     }
