@@ -6,8 +6,10 @@ package cn.davelet.internationalchess;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -42,11 +44,11 @@ public class InternationalChess extends Application {
 
     /**
      * 待解决问题：
-     * 图片居中
+     * 图片居中（已实现）
      * 选中解释（已解决）
      * 棋子的移动（已解决）
      * 棋子的吃（已解决）
-     * 交替走棋的严格
+     * 交替走棋的严格（已实现）
      * 中心区域的标注
      * 图片的放大（已解决）
      * 时间的记录
@@ -103,18 +105,26 @@ public class InternationalChess extends Application {
             public void handle(ActionEvent event) {
                 start.setText("重新开始");
                 //为黑方布棋
-                for (int colunm = 0; colunm < 8; colunm++) {
-                    grid.add(piece[colunm], colunm, 0);
+                for (int column = 0; column < 8; column++) {
+                    grid.add(piece[column], column, 0);
+                    GridPane.setValignment(piece[column], VPos.CENTER);
+                    GridPane.setHalignment(piece[column], HPos.CENTER);
                 }
                 for (int column = 0; column < 8; column++) {
                     grid.add(piece[8 + column], column, 1);
+                    GridPane.setValignment(piece[8 + column], VPos.CENTER);
+                    GridPane.setHalignment(piece[8 + column], HPos.CENTER);
                 }
                 //为白方布棋
-                for (int colunm = 0; colunm < 8; colunm++) {
-                    grid.add(piece[16 + colunm], colunm, 6);
+                for (int column = 0; column < 8; column++) {
+                    grid.add(piece[16 + column], column, 6);
+                    GridPane.setValignment(piece[16 + column], VPos.CENTER);
+                    GridPane.setHalignment(piece[16 + column], HPos.CENTER);
                 }
                 for (int column = 0; column < 8; column++) {
                     grid.add(piece[24 + column], column, 7);
+                    GridPane.setValignment(piece[24 + column], VPos.CENTER);
+                    GridPane.setHalignment(piece[24 + column], HPos.CENTER);
                 }
             }
         });
@@ -209,16 +219,15 @@ public class InternationalChess extends Application {
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
                 if ((column + row) % 2 == 0) {
-                    bgRect[column][row] = new Rectangle(80, 80, Color.YELLOW);
+                    bgRect[column][row] = new Rectangle(80, 80, Color.LIGHTYELLOW);
                 } else {
-                    bgRect[column][row] = new Rectangle(80, 80, Color.GREEN);
+                    bgRect[column][row] = new Rectangle(80, 80, Color.BLACK);
                 }
             }
         }
 
 //        使用GridPane作为棋盘，该窗格可以进行栈覆盖
         grid.setPadding(new Insets(0, 0, 0, 10));
-        //        the 3rd para of the rect sets the rectangle's color
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
                 grid.add(bgRect[column][row], column, row);
