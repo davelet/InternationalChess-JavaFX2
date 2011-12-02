@@ -37,7 +37,8 @@ public class InternationalChess extends Application {
     Rectangle[][] bgRect = new Rectangle[8][8];//棋盘矩形，在220行初始化
     //被选中图片的坐标(数组位置)
     static int selected = 32;
-    boolean control=true;//true表示白方可以移动棋子
+    //true表示白方可以移动棋子
+    boolean control = true;
 
     /**
      * 待解决问题：
@@ -45,6 +46,7 @@ public class InternationalChess extends Application {
      * 选中解释（已解决）
      * 棋子的移动（已解决）
      * 棋子的吃（已解决）
+     * 交替走棋的严格
      * 中心区域的标注
      * 图片的放大（已解决）
      * 时间的记录
@@ -276,13 +278,18 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 8;
-                    if (r == 1) {//如果兵没动过，可以走两步
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 8;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -305,11 +312,14 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 9;
-                    if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 9;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -333,11 +343,14 @@ public class InternationalChess extends Application {
                             }
                         } else {//选中棋子
                             name.setText("黑方:兵Pawn");//在解释区显示
-                            selected = 10;
-                            if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                            } else if (r < 7) {//否则只能走一步
-                            } else if (r == 7) {//兵升变
+                            if (control == false) {
+                                selected = 10;
+                            }
+                            if (control == false) {
+                                if (r == 1) {//如果兵没动过，可以走两步
+                                } else if (r < 7) {//否则只能走一步
+                                } else if (r == 7) {//兵升变
+                                }
                             }
                         }
                     }
@@ -360,11 +373,14 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 10;
-                    if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 11;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -387,11 +403,14 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 10;
-                    if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 12;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -414,11 +433,14 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 10;
-                    if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 13;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -441,11 +463,14 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 10;
-                    if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 14;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -468,11 +493,14 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
-                    selected = 10;
-                    if (r == 1) {//如果兵没动过，可以走两步
-//                        GridPane.clearConstraints((ImageView)t.getSource());
-                    } else if (r < 7) {//否则只能走一步
-                    } else if (r == 7) {//兵升变
+                    if (control == false) {
+                        selected = 15;
+                    }
+                    if (control == false) {
+                        if (r == 1) {//如果兵没动过，可以走两步
+                        } else if (r < 7) {//否则只能走一步
+                        } else if (r == 7) {//兵升变
+                        }
                     }
                 }
             }
@@ -495,7 +523,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 16;
+                    if (control == true) {
+                        selected = 16;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -521,7 +551,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 17;
+                    if (control == true) {
+                        selected = 17;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -547,7 +579,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 18;
+                    if (control == true) {
+                        selected = 18;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -573,7 +607,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 19;
+                    if (control == true) {
+                        selected = 19;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -599,7 +635,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 20;
+                    if (control == true) {
+                        selected = 20;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -625,7 +663,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 21;
+                    if (control == true) {
+                        selected = 21;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -651,7 +691,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 22;
+                    if (control == true) {
+                        selected = 22;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -677,7 +719,9 @@ public class InternationalChess extends Application {
                         selected = 32;
                     }
                 } else {//选中棋子
-                    selected = 23;
+                    if (control == true) {
+                        selected = 23;
+                    }
                     name.setText("白方:兵Pawn");//在解释区显示
                     if (r == 6) {//如果兵没动过，可以走两步
                     } else if (r > 0) {//否则只能走一步
@@ -705,9 +749,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:车Rook");//在解释区显示
-                    selected = 0;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 0;
+                    }
                 }
             }
         });
@@ -729,9 +773,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:车Rook");//在解释区显示
-                    selected = 7;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 7;
+                    }
                 }
             }
         });
@@ -754,9 +798,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:车Rook");//在解释区显示
-                    selected = 24;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 24;
+                    }
                 }
             }
         });
@@ -778,9 +822,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:车Rook");//在解释区显示
-                    selected = 31;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 31;
+                    }
                 }
             }
         });
@@ -803,9 +847,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:马Knight");//在解释区显示
-                    selected = 1;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 1;
+                    }
                 }
             }
         });
@@ -827,9 +871,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:马Knight");//在解释区显示
-                    selected = 6;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 6;
+                    }
                 }
             }
         });
@@ -852,9 +896,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:马Knight");//在解释区显示
-                    selected = 25;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 25;
+                    }
                 }
             }
         });
@@ -876,9 +920,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:马Knight");//在解释区显示
-                    selected = 30;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 30;
+                    }
                 }
             }
         });
@@ -901,9 +945,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:白象Bishop");//在解释区显示
-                    selected = 2;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 2;
+                    }
                 }
             }
         });
@@ -925,9 +969,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:黑象Bishop");//在解释区显示
-                    selected = 5;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 5;
+                    }
                 }
             }
         });
@@ -950,9 +994,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:黑象Bishop");//在解释区显示
-                    selected = 26;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 26;
+                    }
                 }
             }
         });
@@ -974,9 +1018,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:白象Bishop");//在解释区显示
-                    selected = 29;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 29;
+                    }
                 }
             }
         });
@@ -999,9 +1043,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:后Queen");//在解释区显示
-                    selected = 3;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 3;
+                    }
                 }
             }
         });
@@ -1024,9 +1068,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:后Queen");//在解释区显示
-                    selected = 27;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 27;
+                    }
                 }
             }
         });
@@ -1049,9 +1093,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("黑方:王King");//在解释区显示
-                    selected = 4;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == false) {
+                        selected = 4;
+                    }
                 }
             }
         });
@@ -1074,9 +1118,9 @@ public class InternationalChess extends Application {
                     }
                 } else {//选中棋子
                     name.setText("白方:王King");//在解释区显示
-                    selected = 28;
-//                selectedColumn = c;
-//                selectedRow = r;
+                    if (control == true) {
+                        selected = 28;
+                    }
                 }
             }
         });
@@ -1092,12 +1136,17 @@ public class InternationalChess extends Application {
                             Rectangle s = (Rectangle) t.getSource();
                             int c = GridPane.getColumnIndex(s);
                             int r = GridPane.getRowIndex(s);
-                            GridPane.clearConstraints(piece[selected]);
                             try {
                                 grid.add(piece[selected], c, r);
                             } catch (Exception e) {
                                 System.out.println("正常移动。");
                             } finally {
+                                //双方交替走棋
+                                if (selected < 32 && selected > 15) {
+                                    control = false;
+                                } else {
+                                    control = true;
+                                }
                                 selected = 32;
                             }
                         }
