@@ -4,6 +4,8 @@
 package cn.davelet.internationalchess;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -13,6 +15,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.Bloom;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -102,14 +105,17 @@ public class InternationalChess extends Application {
         start.setOnAction(new EventHandler<ActionEvent>() {//开始
 
             public void handle(ActionEvent event) {
+                grid.setEffect(null);
+                grid.setDisable(false);
                 control = true;
-                for (int i = 0; i < 32; i++) {
-                    piece[i].setVisible(false);
-                }
+//                for (int i = 0; i < 32; i++) {
+//                    piece.setVisible(false);
+//                }
+                grid.getChildren().removeAll(piece);
                 start.setText("重新开始");
-                for (int i = 0; i < 32; i++) {
-                    piece[i].setVisible(true);
-                }
+//                for (int i = 0; i < 32; i++) {
+//                    piece[i].setVisible(true);
+//                }
                 //为黑方布棋
                 for (int column = 0; column < 8; column++) {
                     try {
@@ -165,9 +171,10 @@ public class InternationalChess extends Application {
         giveup.setOnAction(new EventHandler<ActionEvent>() {//结束,清空棋盘
 
             public void handle(ActionEvent t) {
-                for (int i = 0; i < 32; i++) {
-                    piece[i].setVisible(false);
-                }
+//                for (int i = 0; i < 32; i++) {
+//                    piece[i].setVisible(false);
+//                }
+                grid.getChildren().removeAll(piece);
             }
         });
         exit.setOnAction(new EventHandler<ActionEvent>() {
@@ -204,8 +211,8 @@ public class InternationalChess extends Application {
         Text special = new Text("使用特殊技能:");
         special.setFont(new Font(16));
         //王车易位选择
-        ToggleGroup changG = new ToggleGroup();
-        ToggleButton left = new ToggleButton("长易位");
+        final ToggleGroup changG = new ToggleGroup();
+        final ToggleButton left = new ToggleButton("长易位");
         left.setFont(new Font(20));
         left.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
         left.setToggleGroup(changG);
@@ -246,8 +253,6 @@ public class InternationalChess extends Application {
         rb4.setToggleGroup(group);
         upTo.getChildren().addAll(new Text("兵升变对象："), rb1, rb2, rb3, rb4);
         upTo.setStyle("-fx-font: 20 arial;");
-        //王车易位的选择
-
         vbox.getChildren().addAll(namebox, black, sp2, white, sp1, new Separator(), special, sSkill);
         //初始化bgRect数组
         for (int column = 0; column < 8; column++) {
@@ -313,7 +318,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[8]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -344,7 +349,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[9]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -375,7 +380,7 @@ public class InternationalChess extends Application {
                         int c = GridPane.getColumnIndex(source);
                         int r = GridPane.getRowIndex(source);
                         if (selected > 15 && selected < 32) {//对方来吃
-                            ((ImageView) t.getSource()).setVisible(false);
+                            grid.getChildren().remove(piece[10]);
                             try {
                                 grid.add(piece[selected], c, r);
                             } catch (Exception e) {
@@ -405,7 +410,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[11]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -435,7 +440,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[12]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -465,7 +470,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[13]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -495,7 +500,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[14]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -525,7 +530,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected > 15 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[15]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -556,7 +561,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[16]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -584,7 +589,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[17]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -612,7 +617,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[18]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -640,7 +645,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[19]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -668,7 +673,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[20]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -696,7 +701,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[21]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -724,7 +729,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[22]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -752,7 +757,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[23]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -781,7 +786,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[0]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -805,7 +810,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[7]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -830,7 +835,7 @@ public class InternationalChess extends Application {
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[24]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -854,7 +859,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[31]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -879,7 +884,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[1]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -903,7 +908,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[6]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -928,7 +933,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[25]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -952,7 +957,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[30]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -977,7 +982,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[2]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -1001,7 +1006,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[5]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -1026,7 +1031,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[26]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -1050,7 +1055,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[29]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -1075,7 +1080,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[3]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -1100,7 +1105,7 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[27]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
@@ -1125,13 +1130,16 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 16 && selected < 32) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[4]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
+                        name.setText("白方胜利");
+                        grid.setEffect(new Bloom());
+                        grid.setDisable(true);
                         selected = 32;
                     }
                 } else {//选中棋子
@@ -1150,13 +1158,16 @@ public class InternationalChess extends Application {
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
                 if (selected >= 0 && selected < 16) {//对方来吃
-                    ((ImageView) t.getSource()).setVisible(false);
+                    grid.getChildren().remove(piece[28]);
                     try {
                         grid.add(piece[selected], c, r);
                     } catch (Exception e) {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
+                        name.setText("黑方胜利");
+                        grid.setEffect(new Bloom());
+                        grid.setDisable(true);
                         selected = 32;
                     }
                 } else {//选中棋子
@@ -1198,12 +1209,24 @@ public class InternationalChess extends Application {
             }
         }
         //给特殊按钮增加事件
-        left.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件
+        changG.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
+
+            public void changed(ObservableValue<? extends Toggle> ov, Toggle t, Toggle t1) {
+                ToggleButton tb = (ToggleButton) t1;
+                if (control == true) {//白方易位
+                    if (tb == left) {
+//                        if(nu)
+//                       grid.getChildren().remove(piece[0]);
+                    }
+                }
+            }
+        });
+        left.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件--长
 
             public void handle(ActionEvent t) {
             }
         });
-        right.setOnAction(new EventHandler<ActionEvent>() {//兵升变事件
+        right.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件--短
 
             public void handle(ActionEvent t) {
             }
