@@ -75,7 +75,6 @@ public class InternationalChess extends Application {
             piece[a - 1] = new ImageView(new Image(getClass().getResourceAsStream("1" + a + ".jpg")));
         }
 
-
         HBox topButton = new HBox();
         topButton.setSpacing(70);
         topButton.setPadding(new Insets(20));
@@ -103,28 +102,51 @@ public class InternationalChess extends Application {
         start.setOnAction(new EventHandler<ActionEvent>() {//开始
 
             public void handle(ActionEvent event) {
+                control = true;
+                for (int i = 0; i < 32; i++) {
+                    piece[i].setVisible(false);
+                }
                 start.setText("重新开始");
+                for (int i = 0; i < 32; i++) {
+                    piece[i].setVisible(true);
+                }
                 //为黑方布棋
                 for (int column = 0; column < 8; column++) {
-                    grid.add(piece[column], column, 0);
-                    GridPane.setValignment(piece[column], VPos.CENTER);
-                    GridPane.setHalignment(piece[column], HPos.CENTER);
+                    try {
+                        grid.add(piece[column], column, 0);
+                    } catch (Exception e) {
+                    } finally {
+                        GridPane.setValignment(piece[column], VPos.CENTER);
+                        GridPane.setHalignment(piece[column], HPos.CENTER);
+                    }
                 }
                 for (int column = 0; column < 8; column++) {
-                    grid.add(piece[8 + column], column, 1);
-                    GridPane.setValignment(piece[8 + column], VPos.CENTER);
-                    GridPane.setHalignment(piece[8 + column], HPos.CENTER);
+                    try {
+                        grid.add(piece[8 + column], column, 1);
+                    } catch (Exception e) {
+                    } finally {
+                        GridPane.setValignment(piece[8 + column], VPos.CENTER);
+                        GridPane.setHalignment(piece[8 + column], HPos.CENTER);
+                    }
                 }
                 //为白方布棋
                 for (int column = 0; column < 8; column++) {
-                    grid.add(piece[16 + column], column, 6);
-                    GridPane.setValignment(piece[16 + column], VPos.CENTER);
-                    GridPane.setHalignment(piece[16 + column], HPos.CENTER);
+                    try {
+                        grid.add(piece[16 + column], column, 6);
+                    } catch (Exception e) {
+                    } finally {
+                        GridPane.setValignment(piece[16 + column], VPos.CENTER);
+                        GridPane.setHalignment(piece[16 + column], HPos.CENTER);
+                    }
                 }
                 for (int column = 0; column < 8; column++) {
-                    grid.add(piece[24 + column], column, 7);
-                    GridPane.setValignment(piece[24 + column], VPos.CENTER);
-                    GridPane.setHalignment(piece[24 + column], HPos.CENTER);
+                    try {
+                        grid.add(piece[24 + column], column, 7);
+                    } catch (Exception e) {
+                    } finally {
+                        GridPane.setValignment(piece[24 + column], VPos.CENTER);
+                        GridPane.setHalignment(piece[24 + column], HPos.CENTER);
+                    }
                 }
             }
         });
@@ -140,16 +162,18 @@ public class InternationalChess extends Application {
                 }
             }
         });
-        giveup.setOnAction(new EventHandler<ActionEvent>() {//结束
+        giveup.setOnAction(new EventHandler<ActionEvent>() {//结束,清空棋盘
 
             public void handle(ActionEvent t) {
-                ActionHandler.giveup();
+                for (int i = 0; i < 32; i++) {
+                    piece[i].setVisible(false);
+                }
             }
         });
         exit.setOnAction(new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent t) {
-                ActionHandler.exit();
+                System.exit(0);
             }
         });
 
