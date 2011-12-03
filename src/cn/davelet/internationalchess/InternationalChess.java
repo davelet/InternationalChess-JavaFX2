@@ -185,43 +185,52 @@ public class InternationalChess extends Application {
         namebox.setAlignment(Pos.CENTER);
         namebox.getChildren().add(name);
         name.setFont(new Font(28));
-        name.setStyle("-fx-text-fill: #006464;");//设置字体颜色
+        name.setStyle("-fx-text-fill: #00FF00;");//设置字体颜色
         Text white = new Text("白方步数：");
-        white.setFont(new Font(20));
+        white.setFont(new Font(16));
         Text black = new Text("黑方步数：");
-        black.setFont(new Font(20));
+        black.setFont(new Font(16));
         ScrollPane sp1 = new ScrollPane();
-        sp1.setFitToWidth(true);
+        sp1.setMaxWidth(210);
         ScrollPane sp2 = new ScrollPane();
-        sp2.setFitToWidth(true);
-        TextArea recordWhite = new TextArea();
-        recordWhite.setEditable(false);
-        recordWhite.setPrefRowCount(15);
-        recordWhite.setPrefWidth(160);
-        TextArea recordBlack = new TextArea();
-        recordBlack.setEditable(false);
-        recordBlack.setPrefRowCount(15);
-        recordBlack.setPrefWidth(160);
+        sp2.setMaxWidth(210);
+        Text recordWhite = new Text();
+        recordWhite.setFill(Color.LIGHTBLUE);
+        Text recordBlack = new Text();
+        recordBlack.setFill(Color.LIGHTBLUE);
         sp1.setContent(recordWhite);
         sp2.setContent(recordBlack);
         //三个特殊按钮
-        Text special = new Text("使用特殊技能");
-        special.setFont(new Font(20));
-        Button kingGharry = new Button("王车易位");
-        kingGharry.setAlignment(Pos.CENTER);
-        kingGharry.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
-        kingGharry.setPrefWidth(160);
-        Button solderUp = new Button("兵升变");
-        solderUp.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
-        solderUp.setPrefWidth(160);
+        Text special = new Text("使用特殊技能:");
+        special.setFont(new Font(16));
+        //王车易位选择
+        ToggleGroup changG = new ToggleGroup();
+        ToggleButton left = new ToggleButton("长易位");
+        left.setFont(new Font(20));
+        left.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
+        left.setToggleGroup(changG);
+        ToggleButton right = new ToggleButton("短易位");
+        right.setFont(new Font(20));
+        right.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
+        right.setToggleGroup(changG);
         Button hitPassSolder = new Button("吃过路兵");
         hitPassSolder.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
         hitPassSolder.setPrefWidth(160);
         //将它们加入盒子
         VBox skill = new VBox();
-        skill.getChildren().addAll(special, kingGharry, hitPassSolder, solderUp);
+        skill.getChildren().addAll(left, right);
+        //手风琴控件
+        TitledPane KRchange = new TitledPane("王车易位", skill);
+        KRchange.setFont(new Font(20));
+        TitledPane hitS = new TitledPane("吃过路兵", hitPassSolder);
+        hitS.setFont(new Font(20));
+        TitledPane sUp = new TitledPane("兵升变", upTo);
+        sUp.setFont(new Font(20));
+        Accordion sSkill = new Accordion();
+        sSkill.setMaxWidth(210);
+        sSkill.setPrefWidth(210);
+        sSkill.getPanes().addAll(KRchange, hitS, sUp);
         //升变对象
-        upTo.setDisable(true);
         final ToggleGroup group = new ToggleGroup();
         RadioButton rb1 = new RadioButton("后");
         rb1.setFont(new Font("bold", 20));
@@ -235,10 +244,11 @@ public class InternationalChess extends Application {
         RadioButton rb4 = new RadioButton("马");
         rb4.setFont(new Font("bold", 20));
         rb4.setToggleGroup(group);
-        upTo.getChildren().addAll(new Separator(), new Separator(), new Text("兵升变对象："), rb1, rb2, rb3, rb4);
+        upTo.getChildren().addAll(new Text("兵升变对象："), rb1, rb2, rb3, rb4);
         upTo.setStyle("-fx-font: 20 arial;");
-        vbox.getChildren().addAll(namebox, white, sp1, black, sp2, skill, upTo);
+        //王车易位的选择
 
+        vbox.getChildren().addAll(namebox, black, sp2, white, sp1, new Separator(), special, sSkill);
         //初始化bgRect数组
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
@@ -1188,15 +1198,14 @@ public class InternationalChess extends Application {
             }
         }
         //给特殊按钮增加事件
-        kingGharry.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件
+        left.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件
 
             public void handle(ActionEvent t) {
             }
         });
-        solderUp.setOnAction(new EventHandler<ActionEvent>() {//兵升变事件
+        right.setOnAction(new EventHandler<ActionEvent>() {//兵升变事件
 
             public void handle(ActionEvent t) {
-                upTo.setDisable(false);
             }
         });
         hitPassSolder.setOnAction(new EventHandler<ActionEvent>() {//吃过路兵事件
