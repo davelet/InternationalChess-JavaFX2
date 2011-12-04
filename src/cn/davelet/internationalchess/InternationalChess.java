@@ -44,6 +44,10 @@ public class InternationalChess extends Application {
     static int selected = 32;
     //true表示白方可以移动棋子
     boolean control = true;
+    //判断棋盘上是否有棋子,true为有棋子
+    boolean isThere[][] = new boolean[8][8];
+    //王车易位前已移动判定。数组分别代表白车、白王、白车，黑车、黑王、黑车
+    boolean moved[] = new boolean[6];
 
     /**
      * 待解决问题：
@@ -54,6 +58,7 @@ public class InternationalChess extends Application {
      * 交替走棋的严格（已实现）
      * 中心区域的标注
      * 图片的放大（已解决）
+     * 摸棋无悔（已实现）
      * 时间的记录
      * 步骤的保存和读取
      * @param args
@@ -105,23 +110,30 @@ public class InternationalChess extends Application {
         start.setOnAction(new EventHandler<ActionEvent>() {//开始
 
             public void handle(ActionEvent event) {
-                grid.setEffect(null);
-                grid.setDisable(false);
-                control = true;
-//                for (int i = 0; i < 32; i++) {
-//                    piece.setVisible(false);
-//                }
-                grid.getChildren().removeAll(piece);
+                grid.setEffect(null);//去除棋盘效果
+                grid.setDisable(false);//棋盘可用
+                control = true;//白方先行
+                for (int m = 0; m < 6; m++) {//可以判定王车易位
+                    moved[m] = false;
+                }
+                grid.getChildren().removeAll(piece);//清理棋子
+                for (int c = 0; c < 8; c++) {
+                    for (int r = 0; r < 8; r++) {
+                        isThere[c][r] = false;//清理棋盘
+                    }
+                }
                 start.setText("重新开始");
-//                for (int i = 0; i < 32; i++) {
-//                    piece[i].setVisible(true);
-//                }
+                for (int a = 0; a < 32; a++) {
+                    piece[a].setDisable(false);//棋子可用
+                    piece[a].setEffect(null);//去除棋子效果
+                }
                 //为黑方布棋
                 for (int column = 0; column < 8; column++) {
                     try {
                         grid.add(piece[column], column, 0);
                     } catch (Exception e) {
                     } finally {
+                        isThere[column][0] = true;
                         GridPane.setValignment(piece[column], VPos.CENTER);
                         GridPane.setHalignment(piece[column], HPos.CENTER);
                     }
@@ -131,6 +143,7 @@ public class InternationalChess extends Application {
                         grid.add(piece[8 + column], column, 1);
                     } catch (Exception e) {
                     } finally {
+                        isThere[column][1] = true;
                         GridPane.setValignment(piece[8 + column], VPos.CENTER);
                         GridPane.setHalignment(piece[8 + column], HPos.CENTER);
                     }
@@ -141,6 +154,7 @@ public class InternationalChess extends Application {
                         grid.add(piece[16 + column], column, 6);
                     } catch (Exception e) {
                     } finally {
+                        isThere[column][6] = true;
                         GridPane.setValignment(piece[16 + column], VPos.CENTER);
                         GridPane.setHalignment(piece[16 + column], HPos.CENTER);
                     }
@@ -150,6 +164,7 @@ public class InternationalChess extends Application {
                         grid.add(piece[24 + column], column, 7);
                     } catch (Exception e) {
                     } finally {
+                        isThere[column][7] = true;
                         GridPane.setValignment(piece[24 + column], VPos.CENTER);
                         GridPane.setHalignment(piece[24 + column], HPos.CENTER);
                     }
@@ -171,10 +186,8 @@ public class InternationalChess extends Application {
         giveup.setOnAction(new EventHandler<ActionEvent>() {//结束,清空棋盘
 
             public void handle(ActionEvent t) {
-//                for (int i = 0; i < 32; i++) {
-//                    piece[i].setVisible(false);
-//                }
-                grid.getChildren().removeAll(piece);
+                grid.setDisable(true);
+                grid.setEffect(new Bloom());
             }
         });
         exit.setOnAction(new EventHandler<ActionEvent>() {
@@ -211,25 +224,27 @@ public class InternationalChess extends Application {
         Text special = new Text("使用特殊技能:");
         special.setFont(new Font(16));
         //王车易位选择
-        final ToggleGroup changG = new ToggleGroup();
-        final ToggleButton left = new ToggleButton("长易位");
+        final Button left = new Button("长易位");
         left.setFont(new Font(20));
         left.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
-        left.setToggleGroup(changG);
-        ToggleButton right = new ToggleButton("短易位");
+        final Button right = new Button("短易位");
         right.setFont(new Font(20));
         right.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
-        right.setToggleGroup(changG);
-        Button hitPassSolder = new Button("吃过路兵");
-        hitPassSolder.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
-        hitPassSolder.setPrefWidth(160);
+        Button hitPassSolderL = new Button("吃过路兵：左");
+        hitPassSolderL.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
+        hitPassSolderL.setPrefWidth(160);
+        Button hitPassSolderR = new Button("吃过路兵：右");
+        hitPassSolderR.setStyle("-fx-font: 22 arial; -fx-base: #b6e7c9;");
+        hitPassSolderR.setPrefWidth(160);
         //将它们加入盒子
-        VBox skill = new VBox();
-        skill.getChildren().addAll(left, right);
+        VBox hitP = new VBox();
+        VBox changG = new VBox();
+        hitP.getChildren().addAll(hitPassSolderL, hitPassSolderR);
+        changG.getChildren().addAll(left, right);
         //手风琴控件
-        TitledPane KRchange = new TitledPane("王车易位", skill);
+        TitledPane KRchange = new TitledPane("王车易位", changG);
         KRchange.setFont(new Font(20));
-        TitledPane hitS = new TitledPane("吃过路兵", hitPassSolder);
+        TitledPane hitS = new TitledPane("吃过路兵", hitP);
         hitS.setFont(new Font(20));
         TitledPane sUp = new TitledPane("兵升变", upTo);
         sUp.setFont(new Font(20));
@@ -326,14 +341,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
-                        control = true;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 8;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 8) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -357,13 +381,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 9;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 9) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -388,13 +422,23 @@ public class InternationalChess extends Application {
                             } finally {
                                 System.out.println("well done!");
                                 selected = 32;
+                                control = false;
                             }
                         } else {//选中棋子
                             name.setText("黑方:兵Pawn");//在解释区显示
                             if (control == false) {
                                 selected = 10;
-                            }
-                            if (control == false) {
+                                isThere[c][r] = false;
+                                for (int a = 0; a < 16; a++) {
+                                    if (a != 10) {
+                                        piece[a].setDisable(true);
+                                        piece[a].setEffect(new Bloom());
+                                    }
+                                }
+                                for (int a = 16; a < 32; a++) {
+                                    piece[a].setDisable(false);
+                                    piece[a].setEffect(null);
+                                }
                                 if (r == 1) {//如果兵没动过，可以走两步
                                 } else if (r < 7) {//否则只能走一步
                                 } else if (r == 7) {//兵升变
@@ -418,13 +462,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 11;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 11) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -448,13 +502,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 12;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 12) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -478,13 +542,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 13;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 13) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -508,13 +582,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 14;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 14) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -538,13 +622,21 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:兵Pawn");//在解释区显示
                     if (control == false) {
                         selected = 15;
-                    }
-                    if (control == false) {
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 15; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                         if (r == 1) {//如果兵没动过，可以走两步
                         } else if (r < 7) {//否则只能走一步
                         } else if (r == 7) {//兵升变
@@ -569,15 +661,24 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 16;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        for (int a = 17; a < 32; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -597,15 +698,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 17;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 17) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -625,15 +738,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 18;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 18) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -653,15 +778,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 19;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 19) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -681,15 +818,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 20;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 20) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -709,15 +858,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 21;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 21) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -737,15 +898,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 22;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 22) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -765,15 +938,27 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
+                    name.setText("白方:兵Pawn");//在解释区显示
                     if (control == true) {
                         selected = 23;
-                    }
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (r == 6) {//如果兵没动过，可以走两步
-                    } else if (r > 0) {//否则只能走一步
-                    } else if (r == 0) {//兵升变
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 23) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                        if (r == 6) {//如果兵没动过，可以走两步
+                        } else if (r > 0) {//否则只能走一步
+                        } else if (r == 0) {//兵升变
+                        }
                     }
                 }
             }
@@ -794,11 +979,24 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:车Rook");//在解释区显示
                     if (control == false) {
                         selected = 0;
+                        isThere[c][r] = false;
+                        moved[3] = true;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 0) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -818,11 +1016,24 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:车Rook");//在解释区显示
                     if (control == false) {
                         selected = 7;
+                        isThere[c][r] = false;
+                        moved[5] = true;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 7) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -843,11 +1054,24 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("白方:车Rook");//在解释区显示
                     if (control == true) {
                         selected = 24;
+                        isThere[c][r] = false;
+                        moved[0] = true;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 24) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -867,11 +1091,24 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("白方:车Rook");//在解释区显示
                     if (control == true) {
                         selected = 31;
+                        isThere[c][r] = false;
+                        moved[2] = true;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 31) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -892,11 +1129,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:马Knight");//在解释区显示
                     if (control == false) {
                         selected = 1;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 1) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -916,11 +1165,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:马Knight");//在解释区显示
                     if (control == false) {
                         selected = 6;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 6) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -941,11 +1202,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("白方:马Knight");//在解释区显示
                     if (control == true) {
                         selected = 25;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 25) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -965,11 +1238,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("白方:马Knight");//在解释区显示
                     if (control == true) {
                         selected = 30;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 30) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -990,11 +1275,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:白象Bishop");//在解释区显示
                     if (control == false) {
                         selected = 2;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 2) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1014,11 +1311,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:黑象Bishop");//在解释区显示
                     if (control == false) {
                         selected = 5;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 5) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1039,11 +1348,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("白方:黑象Bishop");//在解释区显示
                     if (control == true) {
                         selected = 26;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 26) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1063,11 +1384,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("白方:白象Bishop");//在解释区显示
                     if (control == true) {
                         selected = 29;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 29) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1088,11 +1421,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = false;
                     }
                 } else {//选中棋子
                     name.setText("黑方:后Queen");//在解释区显示
                     if (control == false) {
                         selected = 3;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 3) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1113,11 +1458,23 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         selected = 32;
+                        control = true;
                     }
                 } else {//选中棋子
                     name.setText("黑方:后Queen");//在解释区显示
                     if (control == true) {
                         selected = 27;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 27) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1146,6 +1503,18 @@ public class InternationalChess extends Application {
                     name.setText("黑方:王King");//在解释区显示
                     if (control == false) {
                         selected = 4;
+                        isThere[c][r] = false;
+                        moved[4] = true;
+                        for (int a = 0; a < 16; a++) {
+                            if (a != 4) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1174,6 +1543,18 @@ public class InternationalChess extends Application {
                     name.setText("白方:王King");//在解释区显示
                     if (control == true) {
                         selected = 28;
+                        isThere[c][r] = false;
+                        moved[1] = true;
+                        for (int a = 16; a < 32; a++) {
+                            if (a != 28) {
+                                piece[a].setDisable(true);
+                                piece[a].setEffect(new Bloom());
+                            }
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
                     }
                 }
             }
@@ -1190,18 +1571,20 @@ public class InternationalChess extends Application {
                             Rectangle s = (Rectangle) t.getSource();
                             int c = GridPane.getColumnIndex(s);
                             int r = GridPane.getRowIndex(s);
-                            try {
-                                grid.add(piece[selected], c, r);
-                            } catch (Exception e) {
-                                System.out.println("正常移动。");
-                            } finally {
-                                //双方交替走棋
-                                if (selected < 32 && selected > 15) {
-                                    control = false;
-                                } else {
-                                    control = true;
+                            if (isThere[c][r] == false) {
+                                try {
+                                    grid.add(piece[selected], c, r);
+                                } catch (Exception e) {
+                                    System.out.println("正常移动。");
+                                } finally {
+                                    //双方交替走棋
+                                    if (selected < 32 && selected > 15) {
+                                        control = false;
+                                    } else {
+                                        control = true;
+                                    }
+                                    selected = 32;
                                 }
-                                selected = 32;
                             }
                         }
                     }
@@ -1209,31 +1592,180 @@ public class InternationalChess extends Application {
             }
         }
         //给特殊按钮增加事件
-        changG.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-
-            public void changed(ObservableValue<? extends Toggle> ov, Toggle t, Toggle t1) {
-                ToggleButton tb = (ToggleButton) t1;
-                if (control == true) {//白方易位
-                    if (tb == left) {
-//                        if(nu)
-//                       grid.getChildren().remove(piece[0]);
-                    }
-                }
-            }
-        });
         left.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件--长
 
             public void handle(ActionEvent t) {
+                if (control == false) {//黑方易位
+                    if (isThere[1][0] == false && isThere[2][0] == false && isThere[3][0] == false) {
+                        if (moved[3] == false && moved[4] == false) {//可以易位
+                            grid.getChildren().remove(piece[4]);
+                            grid.getChildren().remove(piece[0]);;
+                            grid.add(piece[4], 2, 0);
+                            grid.add(piece[0], 3, 0);
+                            control = true;
+                            moved[3] = false;
+                            moved[4] = false;
+                            selected = 32;
+                            for (int a = 16; a < 32; a++) {
+                                piece[a].setDisable(false);
+                                piece[a].setEffect(null);
+                            }
+                        }
+                    }
+                } else {
+                    if (isThere[1][7] == false && isThere[2][7] == false && isThere[3][7] == false) {
+                        if (moved[0] == false && moved[1] == false) {//可以易位
+                            grid.getChildren().remove(piece[28]);
+                            grid.getChildren().remove(piece[24]);;
+                            grid.add(piece[28], 2, 7);
+                            grid.add(piece[24], 3, 7);
+                            control = false;
+                            moved[0] = false;
+                            moved[1] = false;
+                            selected = 32;
+                            for (int a = 0; a < 16; a++) {
+                                piece[a].setDisable(false);
+                                piece[a].setEffect(null);
+                            }
+                        }
+                    }
+                }
             }
         });
         right.setOnAction(new EventHandler<ActionEvent>() {//王车易位事件--短
 
             public void handle(ActionEvent t) {
+                if (control == false) {//黑方易位
+                    if (isThere[5][0] == false && isThere[6][0] == false) {
+                        if (moved[4] == false && moved[5] == false) {//可以易位
+                            grid.getChildren().remove(piece[4]);
+                            grid.getChildren().remove(piece[7]);;
+                            grid.add(piece[4], 6, 0);
+                            grid.add(piece[7], 5, 0);
+                            control = true;
+                            moved[4] = false;
+                            moved[5] = false;
+                            selected = 32;
+                            for (int a = 16; a < 32; a++) {
+                                piece[a].setDisable(false);
+                                piece[a].setEffect(null);
+                            }
+                        }
+                    }
+                } else {
+                    if (isThere[5][7] == false && isThere[6][7] == false) {
+                        if (moved[1] == false && moved[2] == false) {//可以易位
+                            grid.getChildren().remove(piece[28]);
+                            grid.getChildren().remove(piece[31]);;
+                            grid.add(piece[28], 6, 7);
+                            grid.add(piece[31], 5, 7);
+                            control = false;
+                            moved[1] = false;
+                            moved[2] = false;
+                            selected = 32;
+                            for (int a = 0; a < 16; a++) {
+                                piece[a].setDisable(false);
+                                piece[a].setEffect(null);
+                            }
+                        }
+                    }
+                }
             }
         });
-        hitPassSolder.setOnAction(new EventHandler<ActionEvent>() {//吃过路兵事件
+        hitPassSolderL.setOnAction(new EventHandler<ActionEvent>() {//吃左侧过路兵事件
 
             public void handle(ActionEvent t) {
+                if (control == true) {//白方吃黑方
+                    try {
+                        int rPawn = GridPane.getRowIndex(piece[selected]);
+                        if (selected >= 16 && selected < 24 && rPawn == 3) {
+                            int cPawn = GridPane.getColumnIndex(piece[selected]);
+                            for (int test = 8; test < 16; test++) {
+                                int rHited = GridPane.getRowIndex(piece[test]);
+                                int cHited = GridPane.getColumnIndex(piece[test]);
+                                if (rPawn == rHited && cPawn == cHited + 1) {
+                                    grid.getChildren().remove(piece[test]);
+                                    grid.getChildren().remove(piece[selected]);
+                                    grid.add(piece[selected], cHited, rHited - 1);
+                                    selected = 32;
+                                    control = false;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("未选择白兵");
+                    }
+                } else {//黑方吃白方
+                    try {
+                        int rPawn = GridPane.getRowIndex(piece[selected]);
+                        if (selected >= 8 && selected < 16 && rPawn == 4) {
+                            int cPawn = GridPane.getColumnIndex(piece[selected]);
+                            for (int test = 16; test < 24; test++) {
+                                int rHited = GridPane.getRowIndex(piece[test]);
+                                int cHited = GridPane.getColumnIndex(piece[test]);
+                                if (rPawn == rHited && cPawn == cHited + 1) {
+                                    grid.getChildren().remove(piece[test]);
+                                    grid.getChildren().remove(piece[selected]);
+                                    grid.add(piece[selected], cHited, rHited + 1);
+                                    selected = 32;
+                                    control = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("未选择黑兵");
+                    }
+                }
+            }
+        });
+        hitPassSolderR.setOnAction(new EventHandler<ActionEvent>() {//吃右过路兵
+
+            public void handle(ActionEvent t) {
+                if (control == true) {//白方吃黑方
+                    try {
+                        int rPawn = GridPane.getRowIndex(piece[selected]);
+                        if (selected >= 16 && selected < 24 && rPawn == 3) {
+                            int cPawn = GridPane.getColumnIndex(piece[selected]);
+                            for (int test = 8; test < 16; test++) {
+                                int rHited = GridPane.getRowIndex(piece[test]);
+                                int cHited = GridPane.getColumnIndex(piece[test]);
+                                if (rPawn == rHited && cPawn == cHited - 1) {
+                                    grid.getChildren().remove(piece[test]);
+                                    grid.getChildren().remove(piece[selected]);
+                                    grid.add(piece[selected], cHited, rHited - 1);
+                                    selected = 32;
+                                    control = false;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("未选择白兵");
+                    }
+                } else {//黑方吃白方
+                    try {
+                        int rPawn = GridPane.getRowIndex(piece[selected]);
+                        if (selected >= 8 && selected < 16 && rPawn == 4) {
+                            int cPawn = GridPane.getColumnIndex(piece[selected]);
+                            for (int test = 16; test < 24; test++) {
+                                int rHited = GridPane.getRowIndex(piece[test]);
+                                int cHited = GridPane.getColumnIndex(piece[test]);
+                                if (rPawn == rHited && cPawn == cHited - 1) {
+                                    grid.getChildren().remove(piece[test]);
+                                    grid.getChildren().remove(piece[selected]);
+                                    grid.add(piece[selected], cHited, rHited + 1);
+                                    selected = 32;
+                                    control = true;
+                                    break;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("未选择黑兵");
+                    }
+                }
             }
         });
     }
