@@ -38,16 +38,20 @@ public class InternationalChess extends Application {
     GridPane grid = new GridPane();
     VBox upTo = new VBox();//升变对象区域
     Text name = new Text("名称区域");
-    ImageView[] piece = new ImageView[32];//棋子数组,在68行初始化
+    ImageView[] piece = new ImageView[40];//棋子数组,在68行初始化
     Rectangle[][] bgRect = new Rectangle[8][8];//棋盘矩形，在220行初始化
     //被选中图片的坐标(数组位置)
-    static int selected = 32;
+    static int selected = 40;
     //true表示白方可以移动棋子
     boolean control = true;
     //判断棋盘上是否有棋子,true为有棋子
     boolean isThere[][] = new boolean[8][8];
     //王车易位前已移动判定。数组分别代表白车、白王、白车，黑车、黑王、黑车
     boolean moved[] = new boolean[6];
+    //特殊技能区域
+    Accordion sSkill;
+    TitledPane sUp;//升变窗格
+    ToggleGroup group;
 
     /**
      * 待解决问题：
@@ -74,13 +78,19 @@ public class InternationalChess extends Application {
         Group root = new Group();
         Scene scene = new Scene(root, 880, 725);
         scene.setFill(Color.LIGHTGRAY);
-        BorderPane pane = new BorderPane();
+        final BorderPane pane = new BorderPane();
         pane.setPadding(new Insets(10));
         /*
-         * 初始化棋子数组 piece[0]到piece[15]是黑方，peice[16]到piece[31]是白方 从前向后分别是车 马 象 后 王
+         * 初始化棋子数组 piece[0]到piece[15]是黑方，peice[16]到piece[31]是白方 从前向后分别是车 马 象 后
+         * 王; 初始化兵升变备用棋子
          */
         for (int a = 1; a <= 32; a++) {
             piece[a - 1] = new ImageView(new Image(getClass().getResourceAsStream("1" + a + ".jpg")));
+        }
+        for (int a = 32; a < 40; a++) {
+            piece[a] = new ImageView(new Image(getClass().getResourceAsStream((a - 32) + ".jpg")));
+            GridPane.setHalignment(piece[a], HPos.CENTER);
+            GridPane.setValignment(piece[a], VPos.CENTER);
         }
 
         HBox topButton = new HBox();
@@ -98,22 +108,25 @@ public class InternationalChess extends Application {
         pause.setText("暂停");
         pause.setFont(new Font("bold", 20));
         //结束按钮
-        Button giveup = new Button("放弃");
+        final Button giveup = new Button("放弃");
         giveup.setPrefWidth(100);
         giveup.setFont(new Font("bold", 20));
         //退出按钮
         Button exit = new Button("退出");
         exit.setFont(new Font(20));
-        topButton.getChildren().addAll(start, pause, giveup, exit);
+        //Help
+        final Button help = new Button("玩前必读");
+        help.setStyle("-fx-font: 20 arial; -fx-base: #b6e000;");
+        topButton.getChildren().addAll(start, pause, giveup, exit, help);
 
-        //三个按钮的事件
+        //5个按钮的事件
         start.setOnAction(new EventHandler<ActionEvent>() {//开始
 
             public void handle(ActionEvent event) {
                 grid.setEffect(null);//去除棋盘效果
                 grid.setDisable(false);//棋盘可用
                 control = true;//白方先行
-                for (int m = 0; m < 6; m++) {//可以判定王车易位
+                for (int m = 0; m < 6; m++) {//王车均未移动过
                     moved[m] = false;
                 }
                 grid.getChildren().removeAll(piece);//清理棋子
@@ -123,7 +136,7 @@ public class InternationalChess extends Application {
                     }
                 }
                 start.setText("重新开始");
-                for (int a = 0; a < 32; a++) {
+                for (int a = 0; a < 40; a++) {
                     piece[a].setDisable(false);//棋子可用
                     piece[a].setEffect(null);//去除棋子效果
                 }
@@ -169,6 +182,7 @@ public class InternationalChess extends Application {
                         GridPane.setHalignment(piece[24 + column], HPos.CENTER);
                     }
                 }
+                sSkill.setDisable(false);//特殊技能可用
             }
         });
         pause.setOnAction(new EventHandler<ActionEvent>() {//暂停
@@ -176,9 +190,13 @@ public class InternationalChess extends Application {
             public void handle(ActionEvent t) {
                 if ("暂停".equals(pause.getText())) {
                     grid.setVisible(false);
+                    sSkill.setDisable(true);
+                    help.setDisable(true);
                     pause.setText("继续");
                 } else {
                     grid.setVisible(true);
+                    sSkill.setDisable(false);
+                    help.setDisable(false);
                     pause.setText("暂停");
                 }
             }
@@ -187,6 +205,8 @@ public class InternationalChess extends Application {
 
             public void handle(ActionEvent t) {
                 grid.setDisable(true);
+                sSkill.setDisable(true);
+                help.setDisable(true);
                 grid.setEffect(new Bloom());
             }
         });
@@ -194,6 +214,40 @@ public class InternationalChess extends Application {
 
             public void handle(ActionEvent t) {
                 System.exit(0);
+            }
+        });
+        help.setOnAction(new EventHandler<ActionEvent>() {
+
+            public void handle(ActionEvent t) {
+                start.setDisable(true);
+                pause.setDisable(true);
+                giveup.setDisable(true);
+                sSkill.setDisable(true);
+                final Button tip = new Button();
+                tip.setPrefHeight(grid.getHeight());
+                tip.setPrefWidth(grid.getWidth());
+                grid.add(tip, 0, 0, 8, 8);
+                help.setDisable(true);
+                String s = "玩前必读：\n"
+                        + "1。点击<开始>按钮完成布棋；\n"
+                        + "2。要实现<王车易位>，不要点击棋子，直接点击易位按钮（需要选择长或短）；\n"
+                        + "3。要实现<吃过路兵>，需要先选择棋子，再点击按钮（需要选择左或右）；\n"
+                        + "4。要实现<兵升变>，在兵走到对方底线后不要再点击棋子，直接点击要升变为的目标；\n"
+                        + "5。不限制棋子移动，请自觉主动遵守规则；"
+                        + "\n\n点击这里退出，开始游戏 ^_^o~ 努力！";
+                tip.setText(s);
+                tip.setFont(new Font("bold", 16));
+                tip.setOnAction(new EventHandler<ActionEvent>() {
+
+                    public void handle(ActionEvent t) {
+                        grid.getChildren().remove(tip);
+                        help.setDisable(false);
+                        start.setDisable(false);
+                        pause.setDisable(false);
+                        giveup.setDisable(false);
+                        sSkill.setDisable(false);
+                    }
+                });
             }
         });
 
@@ -246,27 +300,28 @@ public class InternationalChess extends Application {
         KRchange.setFont(new Font(20));
         TitledPane hitS = new TitledPane("吃过路兵", hitP);
         hitS.setFont(new Font(20));
-        TitledPane sUp = new TitledPane("兵升变", upTo);
+        sUp = new TitledPane("兵升变", upTo);
         sUp.setFont(new Font(20));
-        Accordion sSkill = new Accordion();
+        sSkill = new Accordion();
         sSkill.setMaxWidth(210);
         sSkill.setPrefWidth(210);
         sSkill.getPanes().addAll(KRchange, hitS, sUp);
+        sSkill.setDisable(true);
         //升变对象
-        final ToggleGroup group = new ToggleGroup();
-        RadioButton rb1 = new RadioButton("后");
-        rb1.setFont(new Font("bold", 20));
-        rb1.setToggleGroup(group);
-        RadioButton rb2 = new RadioButton("车");
-        rb2.setFont(new Font("bold", 20));
-        rb2.setToggleGroup(group);
-        RadioButton rb3 = new RadioButton("象");
-        rb3.setFont(new Font("bold", 20));
-        rb3.setToggleGroup(group);
-        RadioButton rb4 = new RadioButton("马");
-        rb4.setFont(new Font("bold", 20));
-        rb4.setToggleGroup(group);
-        upTo.getChildren().addAll(new Text("兵升变对象："), rb1, rb2, rb3, rb4);
+        group = new ToggleGroup();
+        final RadioButton 后 = new RadioButton("后");
+        后.setFont(new Font("bold", 20));
+        后.setToggleGroup(group);
+        final RadioButton 车 = new RadioButton("车");
+        车.setFont(new Font("bold", 20));
+        车.setToggleGroup(group);
+        final RadioButton 象 = new RadioButton("象");
+        象.setFont(new Font("bold", 20));
+        象.setToggleGroup(group);
+        final RadioButton 马 = new RadioButton("马");
+        马.setFont(new Font("bold", 20));
+        马.setToggleGroup(group);
+        upTo.getChildren().addAll(new Text("兵升变对象："), 后, 车, 象, 马);
         upTo.setStyle("-fx-font: 20 arial;");
         vbox.getChildren().addAll(namebox, black, sp2, white, sp1, new Separator(), special, sSkill);
         //初始化bgRect数组
@@ -304,7 +359,7 @@ public class InternationalChess extends Application {
         /*
          * 为所有图片加添放大事件
          */
-        for (int a = 0; a < 32; a++) {
+        for (int a = 0; a < 40; a++) {
             piece[a].addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
 
                 public void handle(MouseEvent t) {
@@ -332,7 +387,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[8]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -340,7 +395,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -372,7 +427,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[9]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -380,7 +435,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -413,7 +468,7 @@ public class InternationalChess extends Application {
                         ImageView source = (ImageView) t.getSource();
                         int c = GridPane.getColumnIndex(source);
                         int r = GridPane.getRowIndex(source);
-                        if (selected > 15 && selected < 32) {//对方来吃
+                        if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                             grid.getChildren().remove(piece[10]);
                             try {
                                 grid.add(piece[selected], c, r);
@@ -421,7 +476,7 @@ public class InternationalChess extends Application {
                                 System.out.println("已经成功消灭对方一子！");
                             } finally {
                                 System.out.println("well done!");
-                                selected = 32;
+                                selected = 40;
                                 control = false;
                             }
                         } else {//选中棋子
@@ -453,7 +508,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[11]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -461,7 +516,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -493,7 +548,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[12]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -501,7 +556,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -533,7 +588,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[13]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -541,7 +596,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -573,7 +628,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[14]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -581,7 +636,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -613,7 +668,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected > 15 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[15]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -621,7 +676,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = false;
                     }
                 } else {//选中棋子
@@ -652,7 +707,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[16]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -660,7 +715,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -689,7 +744,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[17]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -697,7 +752,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -729,7 +784,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[18]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -737,7 +792,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -769,7 +824,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[19]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -777,7 +832,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -809,7 +864,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[20]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -817,7 +872,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -849,7 +904,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[21]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -857,7 +912,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -889,7 +944,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[22]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -897,7 +952,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -929,7 +984,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[23]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -937,7 +992,7 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
+                        selected = 40;
                         control = true;
                     }
                 } else {//选中棋子
@@ -970,7 +1025,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[0]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -978,8 +1033,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:车Rook");//在解释区显示
@@ -1007,7 +1067,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[7]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1015,8 +1075,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:车Rook");//在解释区显示
@@ -1045,7 +1110,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int r = GridPane.getRowIndex(source);
                 int c = GridPane.getColumnIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[24]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1053,8 +1118,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("白方:车Rook");//在解释区显示
@@ -1082,7 +1152,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[31]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1090,8 +1160,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("白方:车Rook");//在解释区显示
@@ -1120,7 +1195,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[1]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1128,8 +1203,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:马Knight");//在解释区显示
@@ -1156,7 +1236,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[6]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1164,8 +1244,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:马Knight");//在解释区显示
@@ -1193,7 +1278,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[25]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1201,8 +1286,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("白方:马Knight");//在解释区显示
@@ -1229,7 +1319,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[30]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1237,8 +1327,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("白方:马Knight");//在解释区显示
@@ -1266,7 +1361,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[2]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1274,8 +1369,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:白象Bishop");//在解释区显示
@@ -1302,7 +1402,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[5]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1310,8 +1410,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:黑象Bishop");//在解释区显示
@@ -1339,7 +1444,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[26]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1347,8 +1452,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("白方:黑象Bishop");//在解释区显示
@@ -1375,7 +1485,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[29]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1383,8 +1493,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("白方:白象Bishop");//在解释区显示
@@ -1412,7 +1527,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[3]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1420,8 +1535,13 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = false;
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
                     }
                 } else {//选中棋子
                     name.setText("黑方:后Queen");//在解释区显示
@@ -1449,7 +1569,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[27]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1457,11 +1577,16 @@ public class InternationalChess extends Application {
                         System.out.println("已经成功消灭对方一子！");
                     } finally {
                         System.out.println("well done!");
-                        selected = 32;
-                        control = true;
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
                     }
                 } else {//选中棋子
-                    name.setText("黑方:后Queen");//在解释区显示
+                    name.setText("白方:后Queen");//在解释区显示
                     if (control == true) {
                         selected = 27;
                         isThere[c][r] = false;
@@ -1486,7 +1611,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 16 && selected < 32) {//对方来吃
+                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
                     grid.getChildren().remove(piece[4]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1495,9 +1620,10 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         name.setText("白方胜利");
+                        System.out.println("白方胜利");
                         grid.setEffect(new Bloom());
                         grid.setDisable(true);
-                        selected = 32;
+                        selected = 40;
                     }
                 } else {//选中棋子
                     name.setText("黑方:王King");//在解释区显示
@@ -1526,7 +1652,7 @@ public class InternationalChess extends Application {
                 ImageView source = (ImageView) t.getSource();
                 int c = GridPane.getColumnIndex(source);
                 int r = GridPane.getRowIndex(source);
-                if (selected >= 0 && selected < 16) {//对方来吃
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
                     grid.getChildren().remove(piece[28]);
                     try {
                         grid.add(piece[selected], c, r);
@@ -1535,9 +1661,10 @@ public class InternationalChess extends Application {
                     } finally {
                         System.out.println("well done!");
                         name.setText("黑方胜利");
+                        System.out.println("黑方胜利");
                         grid.setEffect(new Bloom());
                         grid.setDisable(true);
-                        selected = 32;
+                        selected = 40;
                     }
                 } else {//选中棋子
                     name.setText("白方:王King");//在解释区显示
@@ -1559,33 +1686,359 @@ public class InternationalChess extends Application {
                 }
             }
         });
+        //白方车马象后
+        piece[36].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
+                    grid.getChildren().remove(piece[36]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("白方:车Rook");//在解释区显示
+                    if (control == true) {
+                        selected = 36;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        piece[37].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
+                    grid.getChildren().remove(piece[37]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("白方:马Knight");//在解释区显示
+                    if (control == true) {
+                        selected = 37;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        piece[38].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
+                    grid.getChildren().remove(piece[38]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("白方:象Bishop");//在解释区显示
+                    if (control == true) {
+                        selected = 38;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        piece[39].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
+                    grid.getChildren().remove(piece[39]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 7 && selected < 16 && r == 7) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = true;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("白方:后Queen");//在解释区显示
+                    if (control == true) {
+                        selected = 39;
+                        isThere[c][r] = false;
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        //黑方车马象后
+        piece[32].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 16 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
+                    grid.getChildren().remove(piece[32]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("黑方:车Rook");//在解释区显示
+                    if (control == true) {
+                        selected = 32;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        piece[33].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 16 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
+                    grid.getChildren().remove(piece[33]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("黑方:马Knight");//在解释区显示
+                    if (control == true) {
+                        selected = 33;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        piece[34].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 16 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
+                    grid.getChildren().remove(piece[34]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("黑方:象Bishop");//在解释区显示
+                    if (control == true) {
+                        selected = 34;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
+        piece[35].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent t) {
+                ImageView source = (ImageView) t.getSource();
+                int c = GridPane.getColumnIndex(source);
+                int r = GridPane.getRowIndex(source);
+                if ((selected >= 16 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
+                    grid.getChildren().remove(piece[35]);
+                    try {
+                        grid.add(piece[selected], c, r);
+                    } catch (Exception e) {
+                        System.out.println("已经成功消灭对方一子！");
+                    } finally {
+                        System.out.println("well done!");
+                        if (selected > 15 && selected < 24 && r == 0) {//必须升变
+                            sSkill.getPanes().get(2).setExpanded(true);
+                            group.selectToggle(null);
+                        } else {
+                            selected = 40;
+                            control = false;
+                        }
+                    }
+                } else {//选中棋子
+                    name.setText("黑方:后Queen");//在解释区显示
+                    if (control == true) {
+                        selected = 35;
+                        isThere[c][r] = false;
+                        for (int a = 0; a < 16; a++) {
+                            piece[a].setDisable(true);
+                            piece[a].setEffect(new Bloom());
+                        }
+                        for (int a = 16; a < 32; a++) {
+                            piece[a].setDisable(false);
+                            piece[a].setEffect(null);
+                        }
+                    }
+                }
+            }
+        });
         /*
-         * 棋盘面板的单击事件
+         * 棋盘面板的单击事件，实现棋子的移动
          */
         for (int column = 0; column < 8; column++) {
             for (int row = 0; row < 8; row++) {
                 bgRect[column][row].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
                     public void handle(MouseEvent t) {
-                        if (selected < 32) {
+                        if (selected < 40) {//必须有棋子被选中才能移动
                             Rectangle s = (Rectangle) t.getSource();
                             int c = GridPane.getColumnIndex(s);
                             int r = GridPane.getRowIndex(s);
                             if (isThere[c][r] == false) {
-                                try {
-                                    grid.add(piece[selected], c, r);
-                                } catch (Exception e) {
-                                    System.out.println("正常移动。");
-                                } finally {
-                                    //双方交替走棋
-                                    if (selected < 32 && selected > 15) {
-                                        control = false;
-                                    } else {
-                                        control = true;
+                                if (selected >= 8 && selected <= 23 && (r == 0 || r == 7)) {//若可以升变的棋子
+                                    try {
+                                        grid.add(piece[selected], c, r);
+                                    } catch (Exception e) {
+                                        System.out.println("正常移动。");
                                     }
-                                    selected = 32;
+                                } else {
+                                    try {
+                                        grid.add(piece[selected], c, r);
+                                    } catch (Exception e) {
+                                        System.out.println("正常移动。");
+                                    } finally {
+                                        //双方交替走棋
+                                        if (selected < 32 && selected > 15) {
+                                            control = false;
+                                        } else if (selected < 16) {
+                                            control = true;
+                                        } else if (selected > 31 && selected <= 35) {
+                                            control = true;
+                                        } else if (selected > 35) {
+                                            control = false;
+                                        }
+                                        selected = 40;
+                                    }
                                 }
-                            }
+                            }//如果有棋子，这里不执行，而是转向进行图片事件
                         }
                     }
                 });
@@ -1605,7 +2058,7 @@ public class InternationalChess extends Application {
                             control = true;
                             moved[3] = false;
                             moved[4] = false;
-                            selected = 32;
+                            selected = 40;
                             for (int a = 16; a < 32; a++) {
                                 piece[a].setDisable(false);
                                 piece[a].setEffect(null);
@@ -1622,7 +2075,7 @@ public class InternationalChess extends Application {
                             control = false;
                             moved[0] = false;
                             moved[1] = false;
-                            selected = 32;
+                            selected = 40;
                             for (int a = 0; a < 16; a++) {
                                 piece[a].setDisable(false);
                                 piece[a].setEffect(null);
@@ -1645,7 +2098,7 @@ public class InternationalChess extends Application {
                             control = true;
                             moved[4] = false;
                             moved[5] = false;
-                            selected = 32;
+                            selected = 40;
                             for (int a = 16; a < 32; a++) {
                                 piece[a].setDisable(false);
                                 piece[a].setEffect(null);
@@ -1662,7 +2115,7 @@ public class InternationalChess extends Application {
                             control = false;
                             moved[1] = false;
                             moved[2] = false;
-                            selected = 32;
+                            selected = 40;
                             for (int a = 0; a < 16; a++) {
                                 piece[a].setDisable(false);
                                 piece[a].setEffect(null);
@@ -1687,7 +2140,7 @@ public class InternationalChess extends Application {
                                     grid.getChildren().remove(piece[test]);
                                     grid.getChildren().remove(piece[selected]);
                                     grid.add(piece[selected], cHited, rHited - 1);
-                                    selected = 32;
+                                    selected = 40;
                                     control = false;
                                     break;
                                 }
@@ -1708,7 +2161,7 @@ public class InternationalChess extends Application {
                                     grid.getChildren().remove(piece[test]);
                                     grid.getChildren().remove(piece[selected]);
                                     grid.add(piece[selected], cHited, rHited + 1);
-                                    selected = 32;
+                                    selected = 40;
                                     control = true;
                                     break;
                                 }
@@ -1735,7 +2188,7 @@ public class InternationalChess extends Application {
                                     grid.getChildren().remove(piece[test]);
                                     grid.getChildren().remove(piece[selected]);
                                     grid.add(piece[selected], cHited, rHited - 1);
-                                    selected = 32;
+                                    selected = 40;
                                     control = false;
                                     break;
                                 }
@@ -1756,7 +2209,7 @@ public class InternationalChess extends Application {
                                     grid.getChildren().remove(piece[test]);
                                     grid.getChildren().remove(piece[selected]);
                                     grid.add(piece[selected], cHited, rHited + 1);
-                                    selected = 32;
+                                    selected = 40;
                                     control = true;
                                     break;
                                 }
@@ -1768,5 +2221,61 @@ public class InternationalChess extends Application {
                 }
             }
         });
+        //后车象马
+        group.selectedToggleProperty().addListener(
+                new ChangeListener<Toggle>() {
+
+                    public void changed(ObservableValue<? extends Toggle> ov,
+                            Toggle old_toggle, Toggle new_toggle) {
+                        try {
+                            int c = GridPane.getColumnIndex(piece[selected]);
+                            if (control == true) {//白兵升变
+                                grid.getChildren().remove(piece[selected]);
+                                RadioButton rb = (RadioButton) new_toggle;
+                                if (后 == rb) {//升变为后
+                                    grid.add(piece[39], c, 0);
+                                    control = false;
+                                    selected = 40;
+                                } else if (象 == rb) {
+                                    grid.add(piece[38], c, 0);
+                                    control = false;
+                                    selected = 40;
+                                } else if (马 == rb) {
+                                    grid.add(piece[37], c, 0);
+                                    control = false;
+                                    selected = 40;
+                                } else if (车 == rb) {
+                                    grid.add(piece[36], c, 0);
+                                    control = false;
+                                    selected = 40;
+                                }
+                            } else {//黑兵升变
+                                grid.getChildren().remove(piece[selected]);
+                                RadioButton rb = (RadioButton) new_toggle;
+                                if (后 == rb) {//升变为后
+                                    grid.add(piece[35], c, 7);
+                                    control = true;
+                                    selected = 40;
+                                } else if (象 == rb) {
+                                    grid.add(piece[34], c, 7);
+                                    control = true;
+                                    selected = 40;
+                                } else if (马 == rb) {
+                                    grid.add(piece[33], c, 7);
+                                    control = true;
+                                    selected = 40;
+                                } else if (车 == rb) {
+                                    grid.add(piece[32], c, 7);
+                                    control = true;
+                                    selected = 40;
+                                }
+                            }
+                        } catch (Exception e) {
+                            System.out.println(e);
+                            System.out.println("未选择棋子进行升变");
+                        }
+                    sSkill.getPanes().get(2).setExpanded(false);
+                    }
+                });
     }
 }
