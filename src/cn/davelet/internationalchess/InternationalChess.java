@@ -2056,8 +2056,12 @@ public class InternationalChess extends Application {
                             grid.add(piece[4], 2, 0);
                             grid.add(piece[0], 3, 0);
                             control = true;
-                            moved[3] = false;
-                            moved[4] = false;
+                            moved[3] = true;
+                            moved[4] = true;
+                            isThere[0][0]=false;
+                            isThere[4][0]=false;
+                            isThere[2][0]=true;
+                            isThere[3][0]=true;
                             selected = 40;
                             for (int a = 16; a < 32; a++) {
                                 piece[a].setDisable(false);
@@ -2073,8 +2077,12 @@ public class InternationalChess extends Application {
                             grid.add(piece[28], 2, 7);
                             grid.add(piece[24], 3, 7);
                             control = false;
-                            moved[0] = false;
-                            moved[1] = false;
+                            moved[0] = true;
+                            moved[1] = true;
+                            isThere[0][7]=false;
+                            isThere[4][7]=false;
+                            isThere[2][7]=true;
+                            isThere[3][7]=true;
                             selected = 40;
                             for (int a = 0; a < 16; a++) {
                                 piece[a].setDisable(false);
@@ -2096,8 +2104,12 @@ public class InternationalChess extends Application {
                             grid.add(piece[4], 6, 0);
                             grid.add(piece[7], 5, 0);
                             control = true;
-                            moved[4] = false;
-                            moved[5] = false;
+                            moved[4] = true;
+                            moved[5] = true;
+                            isThere[7][0]=false;
+                            isThere[4][0]=false;
+                            isThere[5][0]=true;
+                            isThere[6][0]=true;
                             selected = 40;
                             for (int a = 16; a < 32; a++) {
                                 piece[a].setDisable(false);
@@ -2113,8 +2125,12 @@ public class InternationalChess extends Application {
                             grid.add(piece[28], 6, 7);
                             grid.add(piece[31], 5, 7);
                             control = false;
-                            moved[1] = false;
-                            moved[2] = false;
+                            moved[1] = true;
+                            moved[2] = true;
+                            isThere[7][7]=false;
+                            isThere[4][7]=false;
+                            isThere[5][7]=true;
+                            isThere[6][7]=true;
                             selected = 40;
                             for (int a = 0; a < 16; a++) {
                                 piece[a].setDisable(false);
