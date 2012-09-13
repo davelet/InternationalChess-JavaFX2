@@ -3,6 +3,7 @@
  */
 package cn.davelet.internationalchess;
 
+import java.lang.reflect.Array;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -16,7 +17,6 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.Bloom;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -35,19 +35,19 @@ import javafx.stage.Stage;
  */
 public class InternationalChess extends Application {
 
-    GridPane grid = new GridPane();
+    public static GridPane grid = new GridPane();
     VBox upTo = new VBox();//升变对象区域
-    Text name = new Text("名称区域");
-    ImageView[] piece = new ImageView[40];//棋子数组,在68行初始化
+    public static Text name = new Text("名称区域");
+    public ImageView[] piece = new ImageView[40];//棋子数组,在68行初始化
     Rectangle[][] bgRect = new Rectangle[8][8];//棋盘矩形，在220行初始化
     //被选中图片的坐标(数组位置)
-    static int selected = 40;
+    public static int selected = 40;
     //true表示白方可以移动棋子
-    boolean control = true;
+    public static boolean control = true;
     //判断棋盘上是否有棋子,true为有棋子
-    boolean isThere[][] = new boolean[8][8];
+    public static boolean isThere[][] = new boolean[8][8];
     //王车易位前已移动判定。数组分别代表白车、白王、白车，黑车、黑王、黑车
-    boolean moved[] = new boolean[6];
+    public static boolean moved[] = new boolean[6];
     //特殊技能区域
     Accordion sSkill;
     TitledPane sUp;//升变窗格
@@ -80,42 +80,23 @@ public class InternationalChess extends Application {
         scene.setFill(Color.LIGHTGRAY);
         final BorderPane pane = new BorderPane();
         pane.setPadding(new Insets(10));
-        /*
-         * 初始化棋子数组 piece[0]到piece[15]是黑方，peice[16]到piece[31]是白方 从前向后分别是车 马 象 后
-         * 王; 初始化兵升变备用棋子
-         */
-        for (int a = 1; a <= 32; a++) {
-            piece[a - 1] = new ImageView(new Image(getClass().getResourceAsStream("1" + a + ".jpg")));
-        }
-        for (int a = 32; a < 40; a++) {
-            piece[a] = new ImageView(new Image(getClass().getResourceAsStream((a - 32) + ".jpg")));
-            GridPane.setHalignment(piece[a], HPos.CENTER);
-            GridPane.setValignment(piece[a], VPos.CENTER);
-        }
+
+        new InitialPieces(piece);//Initialise the images of pieces
 
         HBox topButton = new HBox();
         topButton.setSpacing(70);
         topButton.setPadding(new Insets(20));
         pane.setTop(topButton);//边框布局顶部是hbox
-        //开始按钮
-        final Button start = new Button();
-        start.setText("开始");
-        start.setFont(new Font("bold", 20));
-        start.setPrefWidth(100);
+
+        final Button start = new ChessButton("开始");
         //暂停按钮
-        final Button pause = new Button();
-        pause.setPrefWidth(100);
-        pause.setText("暂停");
-        pause.setFont(new Font("bold", 20));
+        final Button pause = new ChessButton("暂停");
         //结束按钮
-        final Button giveup = new Button("放弃");
-        giveup.setPrefWidth(100);
-        giveup.setFont(new Font("bold", 20));
+        final Button giveup = new ChessButton("放弃");
         //退出按钮
-        Button exit = new Button("退出");
-        exit.setFont(new Font(20));
+        Button exit = new ChessButton("退出");
         //Help
-        final Button help = new Button("玩前必读");
+        final Button help = new ChessButton("玩前必读");
         help.setStyle("-fx-font: 20 arial; -fx-base: #b6e000;");
         topButton.getChildren().addAll(start, pause, giveup, exit, help);
 
@@ -187,6 +168,7 @@ public class InternationalChess extends Application {
         });
         pause.setOnAction(new EventHandler<ActionEvent>() {//暂停
 
+            @Override
             public void handle(ActionEvent t) {
                 if ("暂停".equals(pause.getText())) {
                     grid.setVisible(false);
@@ -239,6 +221,7 @@ public class InternationalChess extends Application {
                 tip.setFont(new Font("bold", 16));
                 tip.setOnAction(new EventHandler<ActionEvent>() {
 
+                    @Override
                     public void handle(ActionEvent t) {
                         grid.getChildren().remove(tip);
                         help.setDisable(false);
@@ -381,643 +364,42 @@ public class InternationalChess extends Application {
          *
          */
         //为黑方步兵处理
-        piece[8].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        for (int a = 8; a < 16; a++) {
+            piece[a].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[8]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 8;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 16; a++) {
-                            if (a != 8) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
+                @Override
+                public void handle(MouseEvent t) {
+                    ImageView source = (ImageView) t.getSource();
+                    int c = GridPane.getColumnIndex(source);
+                    int r = GridPane.getRowIndex(source);
+                    int a = new PieceFind().pieceFind(piece, source);
+                    System.out.println("当前点击棋子是 " + a);
+                    PieceAcitons pa=new PieceAcitons();
+//                    pa.blackPawnAction(piece, a, c, r);
+                    pa.blackPawnAction(piece, a, c, r, selected, grid, control, isThere, name);
+                    System.out.println("selected is "+selected);
+                    System.out.println("动作完成,当前控制权为" + control);
                 }
-            }
-        });
-        piece[9].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            });
+        }
 
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[9]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 9;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 16; a++) {
-                            if (a != 9) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[10].addEventHandler(MouseEvent.MOUSE_CLICKED,
-                new EventHandler<MouseEvent>() {
-
-                    public void handle(MouseEvent t) {
-                        ImageView source = (ImageView) t.getSource();
-                        int c = GridPane.getColumnIndex(source);
-                        int r = GridPane.getRowIndex(source);
-                        if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                            grid.getChildren().remove(piece[10]);
-                            try {
-                                grid.add(piece[selected], c, r);
-                            } catch (Exception e) {
-                                System.out.println("已经成功消灭对方一子！");
-                            } finally {
-                                System.out.println("well done!");
-                                selected = 40;
-                                control = false;
-                            }
-                        } else {//选中棋子
-                            name.setText("黑方:兵Pawn");//在解释区显示
-                            if (control == false) {
-                                selected = 10;
-                                isThere[c][r] = false;
-                                for (int a = 0; a < 16; a++) {
-                                    if (a != 10) {
-                                        piece[a].setDisable(true);
-                                        piece[a].setEffect(new Bloom());
-                                    }
-                                }
-                                for (int a = 16; a < 32; a++) {
-                                    piece[a].setDisable(false);
-                                    piece[a].setEffect(null);
-                                }
-                                if (r == 1) {//如果兵没动过，可以走两步
-                                } else if (r < 7) {//否则只能走一步
-                                } else if (r == 7) {//兵升变
-                                }
-                            }
-                        }
-                    }
-                });
-        piece[11].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[11]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 11;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 16; a++) {
-                            if (a != 11) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[12].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[12]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 12;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 16; a++) {
-                            if (a != 12) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[13].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[13]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 13;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 16; a++) {
-                            if (a != 13) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[14].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[14]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 14;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 16; a++) {
-                            if (a != 14) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[15].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int c = GridPane.getColumnIndex(source);
-                int r = GridPane.getRowIndex(source);
-                if ((selected > 15 && selected < 32) || (selected > 35 && selected < 40)) {//对方来吃
-                    grid.getChildren().remove(piece[15]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = false;
-                    }
-                } else {//选中棋子
-                    name.setText("黑方:兵Pawn");//在解释区显示
-                    if (control == false) {
-                        selected = 15;
-                        isThere[c][r] = false;
-                        for (int a = 0; a < 15; a++) {
-                            piece[a].setDisable(true);
-                            piece[a].setEffect(new Bloom());
-                        }
-                        for (int a = 16; a < 32; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 1) {//如果兵没动过，可以走两步
-                        } else if (r < 7) {//否则只能走一步
-                        } else if (r == 7) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
         //为白方步兵处理
-        piece[16].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        for (int a = 16; a < 24; a++) {
+            piece[a].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[16]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 16;
-                        for (int a = 17; a < 32; a++) {
-                            piece[a].setDisable(true);
-                            piece[a].setEffect(new Bloom());
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
+                public void handle(MouseEvent t) {
+                    ImageView source = (ImageView) t.getSource();
+                    int c = GridPane.getColumnIndex(source);
+                    int r = GridPane.getRowIndex(source);
+                    int a = new PieceFind().pieceFind(piece, source);
+                    PieceAcitons pa=new PieceAcitons();
+//                    pa.whitePawnAction(piece, a, c, r);
+                    pa.whitePawnAction(piece, a, c, r, selected, grid, control, isThere, name);
+                    System.out.println("动作完成,当前控制权为" + control);
+//                    System.out.println("当前被选择的是"+selected+"     "+pa.getS());
                 }
-            }
-        });
-        piece[17].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[17]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 17;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 17) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[18].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[18]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 18;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 18) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[19].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[19]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 19;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 19) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[20].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[20]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 20;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 20) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[21].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[21]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 21;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 21) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[22].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[22]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 22;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 22) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
-        piece[23].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
-            public void handle(MouseEvent t) {
-                ImageView source = (ImageView) t.getSource();
-                int r = GridPane.getRowIndex(source);
-                int c = GridPane.getColumnIndex(source);
-                if ((selected >= 0 && selected < 16) || (selected > 31 && selected < 36)) {//对方来吃
-                    grid.getChildren().remove(piece[23]);
-                    try {
-                        grid.add(piece[selected], c, r);
-                    } catch (Exception e) {
-                        System.out.println("已经成功消灭对方一子！");
-                    } finally {
-                        System.out.println("well done!");
-                        selected = 40;
-                        control = true;
-                    }
-                } else {//选中棋子
-                    name.setText("白方:兵Pawn");//在解释区显示
-                    if (control == true) {
-                        selected = 23;
-                        isThere[c][r] = false;
-                        for (int a = 16; a < 32; a++) {
-                            if (a != 23) {
-                                piece[a].setDisable(true);
-                                piece[a].setEffect(new Bloom());
-                            }
-                        }
-                        for (int a = 0; a < 16; a++) {
-                            piece[a].setDisable(false);
-                            piece[a].setEffect(null);
-                        }
-                        if (r == 6) {//如果兵没动过，可以走两步
-                        } else if (r > 0) {//否则只能走一步
-                        } else if (r == 0) {//兵升变
-                        }
-                    }
-                }
-            }
-        });
+            });
+        }
         //黑方车的处理
         piece[0].addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
@@ -2058,10 +1440,10 @@ public class InternationalChess extends Application {
                             control = true;
                             moved[3] = true;
                             moved[4] = true;
-                            isThere[0][0]=false;
-                            isThere[4][0]=false;
-                            isThere[2][0]=true;
-                            isThere[3][0]=true;
+                            isThere[0][0] = false;
+                            isThere[4][0] = false;
+                            isThere[2][0] = true;
+                            isThere[3][0] = true;
                             selected = 40;
                             for (int a = 16; a < 32; a++) {
                                 piece[a].setDisable(false);
@@ -2079,10 +1461,10 @@ public class InternationalChess extends Application {
                             control = false;
                             moved[0] = true;
                             moved[1] = true;
-                            isThere[0][7]=false;
-                            isThere[4][7]=false;
-                            isThere[2][7]=true;
-                            isThere[3][7]=true;
+                            isThere[0][7] = false;
+                            isThere[4][7] = false;
+                            isThere[2][7] = true;
+                            isThere[3][7] = true;
                             selected = 40;
                             for (int a = 0; a < 16; a++) {
                                 piece[a].setDisable(false);
@@ -2106,10 +1488,10 @@ public class InternationalChess extends Application {
                             control = true;
                             moved[4] = true;
                             moved[5] = true;
-                            isThere[7][0]=false;
-                            isThere[4][0]=false;
-                            isThere[5][0]=true;
-                            isThere[6][0]=true;
+                            isThere[7][0] = false;
+                            isThere[4][0] = false;
+                            isThere[5][0] = true;
+                            isThere[6][0] = true;
                             selected = 40;
                             for (int a = 16; a < 32; a++) {
                                 piece[a].setDisable(false);
@@ -2127,10 +1509,10 @@ public class InternationalChess extends Application {
                             control = false;
                             moved[1] = true;
                             moved[2] = true;
-                            isThere[7][7]=false;
-                            isThere[4][7]=false;
-                            isThere[5][7]=true;
-                            isThere[6][7]=true;
+                            isThere[7][7] = false;
+                            isThere[4][7] = false;
+                            isThere[5][7] = true;
+                            isThere[6][7] = true;
                             selected = 40;
                             for (int a = 0; a < 16; a++) {
                                 piece[a].setDisable(false);
@@ -2290,7 +1672,7 @@ public class InternationalChess extends Application {
                             System.out.println(e);
                             System.out.println("未选择棋子进行升变");
                         }
-                    sSkill.getPanes().get(2).setExpanded(false);
+                        sSkill.getPanes().get(2).setExpanded(false);
                     }
                 });
     }
